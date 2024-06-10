@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
+	"github.com/idkwhyureadthis/agg-project/pkg/handlers"
 	"github.com/joho/godotenv"
 )
 
@@ -21,14 +22,18 @@ func main() {
 		AllowCredentials: false,
 		MaxAge:           300,
 	}))
+	v1Router := chi.NewRouter()
+	v1Router.Get("/healthz", handlers.HandlerReadiness)
+	v1Router.Get("/err", handlers.HandlerError)
+	router.Mount("/v1", v1Router)
 	portString := os.Getenv("PORT")
+	if portString == "" {
+		portString = "8080"
+	}
 	srv := &http.Server{
 		Handler: router,
 		Addr:    ":" + portString,
 	}
-
-	err := srv.ListenAndServe()
-	if err != nil {
-		log.Fatal("Falied to start a server:", err)
-	}
+	log.Printf("Server starting at :%v\n", portString)
+	log.Fatal(srv.ListenAndServe())
 }
