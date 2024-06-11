@@ -5,11 +5,8 @@ import (
 	"net/http"
 
 	"github.com/idkwhyureadthis/agg-project/internal/auth"
-	"github.com/idkwhyureadthis/agg-project/internal/database"
 	"github.com/idkwhyureadthis/agg-project/pkg/fmt_respond"
 )
-
-type authedHandler func(http.ResponseWriter, *http.Request, database.User)
 
 func (apiCfg *APIConfig) MiddlewareAuth(handler authedHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

@@ -42,3 +42,16 @@ func (apiCfg *APIConfig) HandlerCreateUser(w http.ResponseWriter, r *http.Reques
 func (apiCfg *APIConfig) HandlerGetUser(w http.ResponseWriter, r *http.Request, user database.User) {
 	fmt_respond.JsonifyRespond(w, 200, models.DBUserToUser(user))
 }
+
+func (apiCfg *APIConfig) HandeGetPostsForUser(w http.ResponseWriter, r *http.Request, user database.User) {
+	posts, err := apiCfg.DB.GetPostsForUser(r.Context(), database.GetPostsForUserParams{
+		UserID: user.ID,
+		Limit:  10,
+	})
+
+	if err != nil {
+		fmt_respond.ErrorifyRespond(w, 400, fmt.Sprintf("couldn't get posts for user: %v", err))
+	}
+
+	fmt_respond.JsonifyRespond(w, 200, models.DBPostsToPosts(posts))
+}

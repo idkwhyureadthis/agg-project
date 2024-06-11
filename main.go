@@ -5,11 +5,14 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
 	"github.com/idkwhyureadthis/agg-project/internal/database"
 	"github.com/idkwhyureadthis/agg-project/pkg/handlers"
+	"github.com/idkwhyureadthis/agg-project/pkg/routers"
+	"github.com/idkwhyureadthis/agg-project/pkg/scraping"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -31,6 +34,8 @@ func main() {
 		DB: database.New(conn),
 	}
 
+	go scraping.StartScraping(apiCfg.DB, 10, time.Minute)
+
 	portString := os.Getenv("PORT")
 	if portString == "" {
 		portString = "8080"
@@ -44,13 +49,7 @@ func main() {
 		MaxAge:           300,
 	}))
 
-	v1Router := chi.NewRouter()
-	v1Router.Get("/healthz", apiCfg.HandlerReadiness)
-	v1Router.Get("/err", apiCfg.HandlerError)
-	v1Router.Post("/users", apiCfg.HandlerCreateUser)
-	v1Router.Post("/feeds", apiCfg.MiddlewareAuth(apiCfg.HandlerCreateFeed))
-	v1Router.Get("/feeds", apiCfg.HandlerGetFeeds)
-	v1Router.Get("/users", apiCfg.MiddlewareAuth(apiCfg.HandlerGetUser))
+	v1Router := routers.SetupV1Router(apiCfg)
 	router.Mount("/v1", v1Router)
 
 	srv := &http.Server{
